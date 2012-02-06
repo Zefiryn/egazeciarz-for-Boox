@@ -1,0 +1,50 @@
+#!/bin/sh   
+# Author Zefiryn
+# Base on a script written by K.K.   
+# with code propopsed by t3d
+
+url=http://egazeciarz.pl/download
+folder=/media/sd/PUBLIKACJE/egazeciarz
+date=`eval date +%Y.%m.%d`
+AppFolder=`dirname $0`
+logFile=${AppFolder}/log.${date}.txt
+
+echo Egazeciarz downloader starting log on ${date} >> ${logFile}
+
+if [ ! -d ${folder} ]
+then
+  echo Newspaper folder doesn\'t exist, attempt to create one >> ${logFile}
+  mkdir -p ${folder} 2>> $logFile
+  if [ $? != 0 ]
+  then
+    echo Cannot create newspaper folder, using app folder instead >> ${logFile}
+    folder=${AppFolder}
+  else
+    echo Folder created successfully >> ${logFile}
+  fi
+fi
+
+if [ ! -d ${folder}/${date} ]
+then
+  echo "Attempt to create subfolder for the current date" >> ${logFile}
+  mkdir ${folder}/${date} 2>> ${logFile}
+  if [ $? != 0 ]
+  then
+    echo Fatal error: cannot create subfolder, quitting >> ${logFile}
+    exit
+  else
+    echo Subfolder created successfully >> ${logFile}
+  fi
+fi
+
+while read gazeta; do
+  if [ `echo "${gazeta}" | grep "#"` ]
+  then
+    echo Found ${gazeta} but is unchecked, no download will be performed >> ${logFile}
+  else
+    echo Found ${gazeta}, downloading >> ${logFile}
+    wget -O ${folder}/${date}/${gazeta} ${url}/${gazeta} 2>> ${logFile}
+  fi
+done < ${AppFolder}/newspaper.txt
+
+sync
